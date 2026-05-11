@@ -2,7 +2,7 @@
 
 **状态日期**: 2026-05-11  
 **规则数量**: 55  
-**来源边界**: 当前规则候选来自产品假设、公开 KiCad 样本池和常见工程审查经验。真实用户访谈尚未完成，因此商业优先级是初始排序，不是已验证结论。每条 top 20 规则在进入 Phase 3 前必须补充至少一个真实访谈痛点、公开项目证据或工程规则证据。
+**来源边界**: 当前规则候选来自产品假设、公开 KiCad 样本池、常见工程审查经验，以及 `research/forum-comment-research.md` 的公开论坛/评论区代理调研。真实用户访谈尚未完成，因此商业优先级仍是初始排序，不是已验证结论。每条 top 20 规则在进入 Phase 3 前必须补充至少一个真实访谈痛点、公开项目证据、公开 VOC 证据或工程规则证据。
 
 ## 排序方法
 
@@ -35,6 +35,33 @@
 | 18 | PCB-004 | pcb | 丝印压焊盘、极性标记缺失或连接器方向不清 | S18-S22 | PCB | silkscreen/pad overlap + marker | 中 | M | 中 |
 | 19 | IF-005 | interface | 高速差分对缺少长度/阻抗/间距约束，报告不可复核 | S04-S10 | PCB, constraints | differential pair net class check | 中 | L | 高 |
 | 20 | BOM-004 | bom | 单一来源器件无替代料或生命周期字段，早期采购风险高 | S11-S23 | BOM | alt/lifecycle/vendor fields | 中 | S | 中高 |
+
+## 公开 VOC 证据映射
+
+`VOC-xx` 来自 `research/forum-comment-research.md`，用于替代真实访谈前的公开证据线索。它们能支持规则方向，但不能证明付费意愿。
+
+| 规则 ID | 公开证据 | 证据含义 | 后续验证 |
+| --- | --- | --- | --- |
+| MFG-001 | VOC-17, VOC-26 | 用户和厂商都反复强调 Gerber、outline、slot、silkscreen、drill 输出包完整性。 | Phase 2 用样本项目实际扫描缺失文件和层。 |
+| BOM-001 | VOC-10, VOC-30 | manufacturer、MPN、采购字段直接影响报价、采购和生命周期判断。 | 真实访谈确认团队是否愿意维护字段。 |
+| PWR-001 | VOC-09, VOC-20 | 自动工具难以替代硬件复核，但电源/decoupling/thermal relief 是可解释高价值方向。 | 样本项目验证 regulator + cap proximity 可检测性。 |
+| IF-001 | VOC-11, VOC-12, VOC-14 | footprint、pinout、极性和外部连接器错误是公开高频返工来源。 | USB-C 规则需要 datasheet 和人工 waiver 机制。 |
+| PCB-001 | VOC-22, VOC-24, VOC-25 | 厂商 profile、trace/space、clearance 需要在 DRC 之前设定。 | 建立 JLCPCB/PCBWay profile fixture。 |
+| IF-002 | VOC-12, VOC-14 | 外部接口 pinout、保护和 ESD 位置是工程评论区高频风险。 | CAN/RS485 需要拓扑识别与人工确认。 |
+| BOM-002 | VOC-29 | DNP/exclude 状态会影响 BOM 和 placement 输出。 | KiCad variant/DNP 行为进入 schema 检查。 |
+| MFG-002 | VOC-01, VOC-03, VOC-27, VOC-28 | BOM/CPL refdes join、坐标、单位、rotation 是 PCBA 用户高摩擦点。 | 先做 CSV join 和异常坐标 lint。 |
+| PWR-002 | VOC-09, VOC-14 | 外部电源入口和保护应在人工复核 checklist 中优先出现。 | 先做 connector-to-power-net pattern，避免过度自动判断。 |
+| PCB-002 | VOC-05, VOC-22, VOC-25 | 功率器件、线宽和厂商能力必须绑定 profile 和电流假设。 | 无电流注解时降级为人工确认。 |
+| IF-003 | VOC-12 | 接口接错、pull-up/down、TX/RX 类错误在社区经验中高频出现。 | Phase 3 先做 I2C pull-up topology。 |
+| BOM-003 | VOC-08, VOC-11, VOC-28 | footprint/package 与实际器件不匹配会直接导致装配失败。 | 需要 MPN/package normalization。 |
+| MFG-003 | VOC-15, VOC-16, VOC-17 | drill 文件、NPTH/PTH、drill map 混淆在 KiCad Forum 中多次出现。 | 先做 drill 文件类型和孔位完整性检查。 |
+| PCB-003 | VOC-09 | 首板 bring-up 需要为调试和返工留余地。 | 测试点规则必须保持建议级，避免误报。 |
+| IF-004 | VOC-09, VOC-12 | debug/bring-up 可访问性影响首板排障。 | MCU/debug pin 识别需要库映射。 |
+| PWR-003 | VOC-07, VOC-09 | 电池/电源安全应作为人工复核重点，而非首版完全自动判断。 | 先放入人工 checklist 和 evidence requirements。 |
+| MFG-004 | VOC-02, VOC-14, VOC-26 | assembly side、pin 1、极性和丝印会影响装配复核。 | 需要结合 fab/assembly drawing 输出。 |
+| PCB-004 | VOC-14, VOC-26 | 丝印压焊盘、极性标记和可读性是下单前检查项。 | 通过 Gerber/PCB 几何规则检测。 |
+| IF-005 | VOC-14 | 差分对和 return path 风险公开评论中出现，但自动化语义难度高。 | 首版只检查约束缺失，不判断 SI 正确性。 |
+| BOM-004 | VOC-05, VOC-10, VOC-30 | 单一来源、库存、替代料和生命周期直接影响采购风险。 | 无外部 API 时先检查字段完整性。 |
 
 ## 全量候选
 

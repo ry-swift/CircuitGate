@@ -17,9 +17,11 @@
 - `research/user-interviews.md`: 30 位访谈招募跟踪表与记录模板。
 - `research/sample-projects.md`: 24 个公开 KiCad 样本项目候选。
 - `rules/rule-candidates.md`: 55 条规则候选，含 top 20 初始优先级。
+- `research/forum-comment-research.md`: 30 条公开论坛/评论区 VOC signals，作为真实访谈前的代理证据。
 
 ## 未完成门槛
 
 - DISC-01: 0 / 30 真实访谈完成。
+- 公开代理调研: 30 / 30 public VOC signals completed，但不能替代真实访谈。
 - Phase 1 success criteria 中“明确 3 个最容易付费的细分场景”仍需真实访谈确认。
 - `rules/rule-candidates.md` 的商业价值排序当前仍是初始推断。

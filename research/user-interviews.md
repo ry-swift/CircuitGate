@@ -2,7 +2,20 @@
 
 **状态日期**: 2026-05-11  
 **当前真实访谈完成数**: 0 / 30  
-**证据完整性说明**: 本文件当前只记录访谈计划、招募池和记录模板。真实访谈必须由用户或团队手动联系硬件工程师、KiCad 用户、开源硬件维护者或硬件创业团队完成后再补录。不得把下面的招募目标当作已完成访谈或已验证结论。
+**公开代理调研完成数**: 30 / 30 public VOC signals，见 `research/forum-comment-research.md`。  
+**证据完整性说明**: 本文件当前只记录访谈计划、招募池、记录模板和公开论坛/评论区代理调研入口。真实访谈必须由用户或团队手动联系硬件工程师、KiCad 用户、开源硬件维护者或硬件创业团队完成后再补录。不得把下面的招募目标或公开帖子当作已完成访谈或已验证付费结论。
+
+## 公开论坛/评论区代理调研
+
+用户要求在需要访谈时先做全网公开调研，因此已补充 `research/forum-comment-research.md`。该文件沉淀了 30 条公开 VOC signals，覆盖 KiCad Forum、Reddit、EEVblog、JLCPCB/PCBWay 官方说明等来源。
+
+当前可用于访谈前修正的结论：
+
+- 下单前制造输出完整性、BOM/CPL/refdes join、CPL rotation/origin、drill/PTH/NPTH、厂商 profile 是公开痛点最密集的方向。
+- 早期产品更应承诺“pre-order review + 可复核证据 + 人工复核入口”，而不是直接承诺完整自动硬件正确性。
+- 公开证据支持把首批规则优先放在 manufacturing、bom、pcb profile 和 interface/polarity 上，但付费意愿仍需真实访谈或付费试点确认。
+
+该代理调研可以用于补强 DISC-02/DISC-03 的规则证据链，但不能单独完成 DISC-01。
 
 ## 访谈配额
 
