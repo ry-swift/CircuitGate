@@ -4,7 +4,10 @@ import path from "node:path";
 import {
   createDesignManifest,
   findingsFromManifest,
+  loadRuleDefinitions,
   runKiCadChecks,
+  runRules,
+  validateRuleDirectory,
   type DesignManifest,
   type Finding,
   type KiCadRawOutput
@@ -17,6 +20,7 @@ interface ReviewArgs {
   profile: string;
   format: OutputFormat;
   output?: string;
+  rulesRoot: string;
 }
 
 interface ReviewReport {
@@ -25,6 +29,11 @@ interface ReviewReport {
   manifest: DesignManifest;
   findings: Finding[];
   rawOutputs: KiCadRawOutput[];
+  ruleSummary: {
+    loaded: number;
+    executed: number;
+    failures: Array<{ ruleId: string; title: string; message: string }>;
+  };
 }
 
 async function main(argv: string[]): Promise<void> {
@@ -34,6 +43,11 @@ async function main(argv: string[]): Promise<void> {
   }
 
   const [command, ...rest] = argv;
+  if (command === "rules") {
+    await runRulesCommand(rest);
+    return;
+  }
+
   if (command !== "review") {
     throw new Error(`Unknown command "${command}". Run circuitgate --help.`);
   }
@@ -55,20 +69,61 @@ async function review(args: ReviewArgs): Promise<ReviewReport> {
   const intakeFindings = findingsFromManifest(manifest);
   const rawOutputDir = path.join(manifest.inputPath, ".circuitgate");
   const kicadResult = await runKiCadChecks(manifest, { outputDir: rawOutputDir });
+  const rules = await loadRuleDefinitions({ root: args.rulesRoot, profile: manifest.profile });
+  const ruleResult = await runRules({ manifest, rules });
 
   return {
     schemaVersion: "0.1.0",
     generatedAt: new Date().toISOString(),
     manifest,
-    findings: [...intakeFindings, ...kicadResult.findings],
-    rawOutputs: kicadResult.rawOutputs
+    findings: [...intakeFindings, ...kicadResult.findings, ...ruleResult.findings],
+    rawOutputs: kicadResult.rawOutputs,
+    ruleSummary: {
+      loaded: ruleResult.loaded,
+      executed: ruleResult.executed,
+      failures: ruleResult.failures
+    }
   };
+}
+
+async function runRulesCommand(argv: string[]): Promise<void> {
+  const [subcommand, ...rest] = argv;
+  if (subcommand !== "validate") {
+    throw new Error(`Unknown rules command "${subcommand ?? ""}". Use: circuitgate rules validate.`);
+  }
+  const flags = parseFlags(rest);
+  const rulesRoot = path.resolve(flags.get("rules") ?? "rules");
+  const result = await validateRuleDirectory(rulesRoot);
+  if (!result.valid) {
+    throw new Error(`Rule validation failed:\n${result.errors.join("\n")}`);
+  }
+  process.stdout.write(`Validated ${result.count} CircuitGate rules in ${rulesRoot}\n`);
 }
 
 function parseReviewArgs(argv: string[]): ReviewArgs {
   const positional: string[] = [];
-  const flags = new Map<string, string>();
+  const flags = parseFlags(argv, positional);
+  const projectPath = positional[0];
+  if (!projectPath) {
+    throw new Error("Missing project path. Example: circuitgate review examples/blinky --profile jlcpcb");
+  }
 
+  const format = flags.get("format") ?? "json";
+  if (format !== "json" && format !== "markdown") {
+    throw new Error(`Unsupported --format "${format}". Use json or markdown.`);
+  }
+
+  return {
+    projectPath,
+    profile: flags.get("profile") ?? "generic",
+    format,
+    output: flags.get("output"),
+    rulesRoot: path.resolve(flags.get("rules") ?? "rules")
+  };
+}
+
+function parseFlags(argv: string[], positional: string[] = []): Map<string, string> {
+  const flags = new Map<string, string>();
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index];
     if (!token) continue;
@@ -88,22 +143,7 @@ function parseReviewArgs(argv: string[]): ReviewArgs {
     }
   }
 
-  const projectPath = positional[0];
-  if (!projectPath) {
-    throw new Error("Missing project path. Example: circuitgate review examples/blinky --profile jlcpcb");
-  }
-
-  const format = flags.get("format") ?? "json";
-  if (format !== "json" && format !== "markdown") {
-    throw new Error(`Unsupported --format "${format}". Use json or markdown.`);
-  }
-
-  return {
-    projectPath,
-    profile: flags.get("profile") ?? "generic",
-    format,
-    output: flags.get("output")
-  };
+  return flags;
 }
 
 function renderMarkdown(report: ReviewReport): string {
@@ -148,10 +188,12 @@ function printHelp(): void {
 
 Usage:
   circuitgate review <path> [--profile generic|jlcpcb|pcbway] [--format json|markdown] [--output file]
+  circuitgate rules validate [--rules rules]
 
 Examples:
   circuitgate review examples/blinky --profile jlcpcb --format json
   circuitgate review examples/blinky --profile pcbway --format markdown --output report.md
+  circuitgate rules validate
 `);
 }
 

@@ -1,0 +1,72 @@
+[
+  {
+    "id": "PCB-001",
+    "title": "Manufacturer geometry thresholds need DRC confirmation",
+    "category": "pcb",
+    "severity": "medium",
+    "appliesTo": { "artifacts": ["kicad-board"], "profiles": ["generic", "jlcpcb", "pcbway"] },
+    "inputs": ["kicad-board"],
+    "evidence": [{ "type": "rule", "required": true, "description": "Board clearance, trace width, hole and edge rules matched to manufacturer profile" }],
+    "message": "Manufacturer geometry thresholds need human confirmation against the selected profile.",
+    "recommendation": "Verify KiCad board setup and DRC constraints match the intended manufacturer capability.",
+    "falsePositiveNotes": "Waive when profile-matched DRC configuration is committed and reviewed.",
+    "impact": "A board can pass generic DRC while failing manufacturer-specific capabilities.",
+    "check": { "type": "checklist", "status": "needs-human-review" }
+  },
+  {
+    "id": "PCB-003",
+    "title": "Bring-up test point coverage needs review",
+    "category": "pcb",
+    "severity": "low",
+    "appliesTo": { "artifacts": ["kicad-board"], "profiles": ["generic", "jlcpcb", "pcbway"] },
+    "inputs": ["kicad-board"],
+    "evidence": [{ "type": "rule", "required": true, "description": "Power rails, programming pins and key interfaces have accessible test points" }],
+    "message": "Test point coverage needs human review.",
+    "recommendation": "Check power rails, reset, boot, debug and high-risk interfaces for bring-up access.",
+    "falsePositiveNotes": "Waive for boards where bring-up access is provided through connectors or fixtures.",
+    "impact": "Debug and first-article bring-up may become slower or require rework.",
+    "check": { "type": "checklist", "status": "needs-human-review" }
+  },
+  {
+    "id": "PCB-004",
+    "title": "Silkscreen and polarity markers need review",
+    "category": "pcb",
+    "severity": "low",
+    "appliesTo": { "artifacts": ["kicad-board"], "profiles": ["generic", "jlcpcb", "pcbway"] },
+    "inputs": ["kicad-board"],
+    "evidence": [{ "type": "rule", "required": true, "description": "Polarity, pin-1 and orientation markings are present and not obscured" }],
+    "message": "Silkscreen and polarity markings need human review.",
+    "recommendation": "Inspect connector direction, diode/LED/capacitor polarity and pin-1 marks before release.",
+    "falsePositiveNotes": "Waive when assembly drawing or mechanical constraints make orientation unambiguous.",
+    "impact": "Manual assembly and human review can miss orientation-sensitive mistakes.",
+    "check": { "type": "checklist", "status": "needs-human-review" }
+  },
+  {
+    "id": "PCB-005",
+    "title": "KiCad DRC output is available for board-level findings",
+    "category": "pcb",
+    "severity": "medium",
+    "appliesTo": { "artifacts": ["kicad-board"], "profiles": ["generic", "jlcpcb", "pcbway"] },
+    "inputs": ["kicad-board"],
+    "evidence": [{ "type": "manifest", "required": true, "description": "KiCad board source file used for DRC execution and normalization" }],
+    "message": "No KiCad board file was found for DRC-backed PCB review.",
+    "recommendation": "Provide `.kicad_pcb` when board-level DRC interpretation is expected.",
+    "falsePositiveNotes": "Waive for manufacturing-package-only review where raw Gerbers are the only input.",
+    "impact": "Copper, clearance and unconnected-net risks cannot be tied back to KiCad DRC evidence.",
+    "check": { "type": "artifact-present", "anyOf": ["kicad-board"], "status": "blocked-by-missing-input" }
+  },
+  {
+    "id": "PCB-007",
+    "title": "Via and drill thresholds need profile review",
+    "category": "pcb",
+    "severity": "medium",
+    "appliesTo": { "artifacts": ["kicad-board", "drill-file"], "profiles": ["generic", "jlcpcb", "pcbway"] },
+    "inputs": ["kicad-board", "drill-file"],
+    "evidence": [{ "type": "rule", "required": true, "description": "Via diameter, drill diameter and annular ring thresholds match manufacturer profile" }],
+    "message": "Via and drill thresholds need human review.",
+    "recommendation": "Confirm minimum drill, annular ring and via settings against the selected manufacturer profile.",
+    "falsePositiveNotes": "Waive when profile-specific DRC settings already enforce these constraints.",
+    "impact": "A prototype can pass local checks but fail fabrication capability review.",
+    "check": { "type": "checklist", "status": "needs-human-review" }
+  }
+]

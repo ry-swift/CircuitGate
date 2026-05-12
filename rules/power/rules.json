@@ -1,0 +1,44 @@
+[
+  {
+    "id": "PWR-001",
+    "title": "Regulator capacitor placement needs review",
+    "category": "power",
+    "severity": "medium",
+    "appliesTo": { "artifacts": ["kicad-schematic", "kicad-board"], "profiles": ["generic", "jlcpcb", "pcbway"] },
+    "inputs": ["kicad-schematic", "kicad-board"],
+    "evidence": [{ "type": "rule", "required": true, "description": "Regulator input/output capacitor topology and placement are reviewed from schematic and board context" }],
+    "message": "Regulator decoupling and capacitor placement need human review.",
+    "recommendation": "Review regulator datasheets and confirm input/output capacitors are present and placed close to the pins.",
+    "falsePositiveNotes": "Waive when the design has no regulator or capacitor placement is documented externally.",
+    "impact": "Power rails can oscillate, sag or fail during first power-up.",
+    "check": { "type": "checklist", "status": "needs-human-review" }
+  },
+  {
+    "id": "PWR-002",
+    "title": "Power input protection needs review",
+    "category": "power",
+    "severity": "medium",
+    "appliesTo": { "artifacts": ["kicad-schematic"], "profiles": ["generic", "jlcpcb", "pcbway"] },
+    "inputs": ["kicad-schematic"],
+    "evidence": [{ "type": "rule", "required": true, "description": "External power connectors have protection appropriate to the expected environment" }],
+    "message": "Power input protection needs human review.",
+    "recommendation": "Check fuse, reverse-polarity, TVS and surge protection assumptions for external power inputs.",
+    "falsePositiveNotes": "Waive for lab-only boards with documented supply assumptions.",
+    "impact": "Incorrect external power handling can damage the prototype or connected system.",
+    "check": { "type": "checklist", "status": "needs-human-review" }
+  },
+  {
+    "id": "PWR-005",
+    "title": "Power net naming needs review",
+    "category": "power",
+    "severity": "low",
+    "appliesTo": { "artifacts": ["kicad-schematic"], "profiles": ["generic", "jlcpcb", "pcbway"] },
+    "inputs": ["kicad-schematic"],
+    "evidence": [{ "type": "rule", "required": true, "description": "Input, regulator output and load power nets are named clearly enough for review" }],
+    "message": "Power net naming needs human review.",
+    "recommendation": "Confirm major power rails are named consistently and distinguish input, regulated output and load domains.",
+    "falsePositiveNotes": "Waive for simple boards where the net structure is obvious from the schematic.",
+    "impact": "Ambiguous power nets increase review cost and hide voltage-domain mistakes.",
+    "check": { "type": "checklist", "status": "needs-human-review" }
+  }
+]

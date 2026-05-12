@@ -1,0 +1,72 @@
+[
+  {
+    "id": "IF-001",
+    "title": "USB-C CC resistor topology needs review",
+    "category": "interface",
+    "severity": "medium",
+    "appliesTo": { "artifacts": ["kicad-schematic"], "profiles": ["generic", "jlcpcb", "pcbway"] },
+    "inputs": ["kicad-schematic"],
+    "evidence": [{ "type": "rule", "required": true, "description": "USB-C CC pins and role resistors are reviewed from schematic context" }],
+    "message": "USB-C CC resistor topology needs human review.",
+    "recommendation": "Confirm CC pull-up/down, connector orientation and shield/ESD decisions against the intended USB-C role.",
+    "falsePositiveNotes": "Waive when the design has no USB-C connector.",
+    "impact": "USB-C power or orientation behavior can fail despite passing generic ERC.",
+    "check": { "type": "checklist", "status": "needs-human-review" }
+  },
+  {
+    "id": "IF-002",
+    "title": "CAN or RS485 protection needs review",
+    "category": "interface",
+    "severity": "medium",
+    "appliesTo": { "artifacts": ["kicad-schematic"], "profiles": ["generic", "jlcpcb", "pcbway"] },
+    "inputs": ["kicad-schematic"],
+    "evidence": [{ "type": "rule", "required": true, "description": "Transceiver termination, biasing and ESD assumptions are reviewed" }],
+    "message": "CAN/RS485 interface termination and protection need human review.",
+    "recommendation": "Confirm termination, biasing, common-mode protection and connector pinout for field interfaces.",
+    "falsePositiveNotes": "Waive when the board has no field bus transceiver.",
+    "impact": "Field communications can be unreliable or vulnerable to ESD/surge events.",
+    "check": { "type": "checklist", "status": "needs-human-review" }
+  },
+  {
+    "id": "IF-003",
+    "title": "I2C pull-up topology needs review",
+    "category": "interface",
+    "severity": "low",
+    "appliesTo": { "artifacts": ["kicad-schematic"], "profiles": ["generic", "jlcpcb", "pcbway"] },
+    "inputs": ["kicad-schematic"],
+    "evidence": [{ "type": "rule", "required": true, "description": "I2C pull-ups and voltage domains are reviewed from schematic context" }],
+    "message": "I2C pull-up topology needs human review.",
+    "recommendation": "Confirm SDA/SCL pull-ups exist and are tied to the expected voltage domain.",
+    "falsePositiveNotes": "Waive when the design has no I2C bus or pull-ups are provided off-board.",
+    "impact": "I2C buses can fail bring-up or violate connected device voltage limits.",
+    "check": { "type": "checklist", "status": "needs-human-review" }
+  },
+  {
+    "id": "IF-004",
+    "title": "Debug interface accessibility needs review",
+    "category": "interface",
+    "severity": "low",
+    "appliesTo": { "artifacts": ["kicad-schematic", "kicad-board"], "profiles": ["generic", "jlcpcb", "pcbway"] },
+    "inputs": ["kicad-schematic", "kicad-board"],
+    "evidence": [{ "type": "rule", "required": true, "description": "SWD/JTAG/UART boot and reset access are available through connectors or test points" }],
+    "message": "Debug and programming access need human review.",
+    "recommendation": "Confirm reset, boot mode and debug pins remain accessible after assembly.",
+    "falsePositiveNotes": "Waive for simple boards with pre-programmed modules or documented factory programming flow.",
+    "impact": "Firmware bring-up and recovery may require rework if programming access is missing.",
+    "check": { "type": "checklist", "status": "needs-human-review" }
+  },
+  {
+    "id": "IF-005",
+    "title": "High-speed differential constraints need review",
+    "category": "interface",
+    "severity": "low",
+    "appliesTo": { "artifacts": ["kicad-board"], "profiles": ["generic", "jlcpcb", "pcbway"] },
+    "inputs": ["kicad-board"],
+    "evidence": [{ "type": "rule", "required": true, "description": "Differential pair impedance, spacing and length constraints are recorded when high-speed interfaces exist" }],
+    "message": "High-speed differential constraints need human review.",
+    "recommendation": "If the board has USB, Ethernet, MIPI, PCIe or LVDS, confirm net classes and stackup assumptions are documented.",
+    "falsePositiveNotes": "Waive when the board has no high-speed differential interface.",
+    "impact": "Signal-integrity assumptions can be invisible to reviewers and manufacturers.",
+    "check": { "type": "checklist", "status": "needs-human-review" }
+  }
+]
