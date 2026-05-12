@@ -1,0 +1,16 @@
+{
+  "name": "@circuitgate/cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "circuitgate": "dist/index.js"
+  },
+  "dependencies": {
+    "@circuitgate/core": "workspace:*"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "tsc -p tsconfig.json --noEmit"
+  }
+}

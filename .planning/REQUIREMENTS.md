@@ -33,17 +33,17 @@
 
 ### Intake
 
-- [ ] **INTK-01**: CLI 可以识别 `.kicad_pro`、`.kicad_sch`、`.kicad_pcb` 项目结构。
-- [ ] **INTK-02**: CLI 可以接收 Gerber zip、BOM CSV 和 pick-and-place CSV 作为输入。
-- [ ] **INTK-03**: 系统可以生成 `DesignManifest`，列出设计文件、制造文件、BOM、CPL、drill、assembly drawing 和缺失项。
-- [ ] **INTK-04**: 系统可以选择 `jlcpcb`、`pcbway`、`generic` 制造商 profile。
+- [x] **INTK-01**: CLI 可以识别 `.kicad_pro`、`.kicad_sch`、`.kicad_pcb` 项目结构。
+- [x] **INTK-02**: CLI 可以接收 Gerber zip、BOM CSV 和 pick-and-place CSV 作为输入。
+- [x] **INTK-03**: 系统可以生成 `DesignManifest`，列出设计文件、制造文件、BOM、CPL、drill、assembly drawing 和缺失项。
+- [x] **INTK-04**: 系统可以选择 `jlcpcb`、`pcbway`、`generic` 制造商 profile。
 
 ### KiCad Analysis
 
-- [ ] **KICD-01**: 系统可以调用 KiCad CLI 执行 ERC。
-- [ ] **KICD-02**: 系统可以调用 KiCad CLI 执行 DRC。
-- [ ] **KICD-03**: 系统可以解析 ERC/DRC 输出并归一化为 `Finding`。
-- [ ] **KICD-04**: 系统可以保存原始工具输出，供报告追溯。
+- [x] **KICD-01**: 系统可以调用 KiCad CLI 执行 ERC。
+- [x] **KICD-02**: 系统可以调用 KiCad CLI 执行 DRC。
+- [x] **KICD-03**: 系统可以解析 ERC/DRC 输出并归一化为 `Finding`。
+- [x] **KICD-04**: 系统可以保存原始工具输出，供报告追溯。
 
 ### Rule Engine
 
@@ -116,14 +116,14 @@
 | PILOT-01 | Phase 1.5 / Phase 6 | Complete |
 | PILOT-02 | Phase 6 | Pending |
 | PILOT-03 | Phase 6 | Pending |
-| INTK-01 | Phase 2 | Pending |
-| INTK-02 | Phase 2 | Pending |
-| INTK-03 | Phase 2 | Pending |
-| INTK-04 | Phase 2 | Pending |
-| KICD-01 | Phase 2 | Pending |
-| KICD-02 | Phase 2 | Pending |
-| KICD-03 | Phase 2 | Pending |
-| KICD-04 | Phase 2 | Pending |
+| INTK-01 | Phase 2 | Complete |
+| INTK-02 | Phase 2 | Complete |
+| INTK-03 | Phase 2 | Complete |
+| INTK-04 | Phase 2 | Complete |
+| KICD-01 | Phase 2 | Complete |
+| KICD-02 | Phase 2 | Complete |
+| KICD-03 | Phase 2 | Complete |
+| KICD-04 | Phase 2 | Complete |
 | RULE-01 | Phase 3 | Pending |
 | RULE-02 | Phase 3 | Pending |
 | RULE-03 | Phase 3 | Pending |
@@ -148,4 +148,4 @@
 - Unmapped: 0
 
 ---
-*Last updated: 2026-05-12 after replacing interview gate with public VOC + paid pilot validation*
+*Last updated: 2026-05-12 after Phase 2 intake CLI execution*

@@ -1,1 +1,9 @@
 .planning/
+node_modules/
+dist/
+packages/*/dist/
+.circuitgate/
+examples/**/.circuitgate/
+*.kicad_prl
+~*.lck
+.DS_Store
