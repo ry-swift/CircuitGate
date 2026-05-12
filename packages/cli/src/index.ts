@@ -2,15 +2,16 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import {
+  createReportModel,
   createDesignManifest,
   findingsFromManifest,
   loadRuleDefinitions,
+  renderJsonReport,
+  renderMarkdownReport,
   runKiCadChecks,
   runRules,
   validateRuleDirectory,
-  type DesignManifest,
-  type Finding,
-  type KiCadRawOutput
+  type ReportModel
 } from "@circuitgate/core";
 
 type OutputFormat = "json" | "markdown";
@@ -21,19 +22,6 @@ interface ReviewArgs {
   format: OutputFormat;
   output?: string;
   rulesRoot: string;
-}
-
-interface ReviewReport {
-  schemaVersion: "0.1.0";
-  generatedAt: string;
-  manifest: DesignManifest;
-  findings: Finding[];
-  rawOutputs: KiCadRawOutput[];
-  ruleSummary: {
-    loaded: number;
-    executed: number;
-    failures: Array<{ ruleId: string; title: string; message: string }>;
-  };
 }
 
 async function main(argv: string[]): Promise<void> {
@@ -54,7 +42,7 @@ async function main(argv: string[]): Promise<void> {
 
   const args = parseReviewArgs(rest);
   const report = await review(args);
-  const rendered = args.format === "json" ? `${JSON.stringify(report, null, 2)}\n` : renderMarkdown(report);
+  const rendered = args.format === "json" ? renderJsonReport(report) : renderMarkdownReport(report);
 
   if (args.output) {
     await mkdir(path.dirname(path.resolve(args.output)), { recursive: true });
@@ -64,26 +52,25 @@ async function main(argv: string[]): Promise<void> {
   }
 }
 
-async function review(args: ReviewArgs): Promise<ReviewReport> {
+async function review(args: ReviewArgs): Promise<ReportModel> {
   const manifest = await createDesignManifest(args.projectPath, { profile: args.profile });
   const intakeFindings = findingsFromManifest(manifest);
   const rawOutputDir = path.join(manifest.inputPath, ".circuitgate");
   const kicadResult = await runKiCadChecks(manifest, { outputDir: rawOutputDir });
   const rules = await loadRuleDefinitions({ root: args.rulesRoot, profile: manifest.profile });
   const ruleResult = await runRules({ manifest, rules });
+  const findings = [...intakeFindings, ...kicadResult.findings, ...ruleResult.findings];
 
-  return {
-    schemaVersion: "0.1.0",
-    generatedAt: new Date().toISOString(),
+  return createReportModel({
     manifest,
-    findings: [...intakeFindings, ...kicadResult.findings, ...ruleResult.findings],
     rawOutputs: kicadResult.rawOutputs,
+    findings,
     ruleSummary: {
       loaded: ruleResult.loaded,
       executed: ruleResult.executed,
       failures: ruleResult.failures
     }
-  };
+  });
 }
 
 async function runRulesCommand(argv: string[]): Promise<void> {
@@ -144,43 +131,6 @@ function parseFlags(argv: string[], positional: string[] = []): Map<string, stri
   }
 
   return flags;
-}
-
-function renderMarkdown(report: ReviewReport): string {
-  const lines = [
-    "# CircuitGate Review",
-    "",
-    `Generated: ${report.generatedAt}`,
-    `Profile: ${report.manifest.profile}`,
-    `Project type: ${report.manifest.inferredProjectType}`,
-    "",
-    "## Artifact Summary",
-    ""
-  ];
-
-  for (const [kind, artifacts] of Object.entries(report.manifest.found)) {
-    if (artifacts.length > 0) {
-      lines.push(`- ${kind}: ${artifacts.map((artifact) => artifact.relativePath).join(", ")}`);
-    }
-  }
-
-  lines.push("", "## Findings", "");
-  if (report.findings.length === 0) {
-    lines.push("No findings.");
-  } else {
-    for (const finding of report.findings) {
-      lines.push(
-        `### ${finding.severity.toUpperCase()} ${finding.id}: ${finding.title}`,
-        "",
-        finding.message,
-        "",
-        `Recommendation: ${finding.recommendation}`,
-        ""
-      );
-    }
-  }
-
-  return `${lines.join("\n")}\n`;
 }
 
 function printHelp(): void {
