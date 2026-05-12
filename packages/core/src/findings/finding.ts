@@ -2,13 +2,14 @@ export type FindingSeverity = "critical" | "high" | "medium" | "low" | "info";
 
 export type FindingSource =
   | "intake"
+  | "rule"
   | "kicad-cli"
   | "kicad-erc"
   | "kicad-drc"
   | "system";
 
 export interface FindingEvidence {
-  type: "file" | "command" | "tool-output" | "manifest" | "diagnostic";
+  type: "file" | "command" | "tool-output" | "manifest" | "diagnostic" | "rule" | "bom-row" | "cpl-row";
   path?: string;
   command?: string;
   excerpt?: string;
@@ -27,6 +28,8 @@ export interface Finding {
   ruleId: string;
   title: string;
   message: string;
+  status?: "open" | "needs-human-review" | "blocked-by-missing-input";
+  impact?: string;
   evidence: FindingEvidence[];
   recommendation: string;
   waiver: FindingWaiver;
