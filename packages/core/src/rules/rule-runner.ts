@@ -82,6 +82,11 @@ export function mergeRuleFindings(ruleFindings: Finding[], otherFindings: Findin
 }
 
 function evaluateRule(rule: RuleDefinition, manifest: DesignManifest, bomTables: CsvTable[], cplTables: CsvTable[]): Finding[] {
+  const missingInputs = missingRequiredInputs(rule, manifest);
+  if (missingInputs.length > 0) {
+    return [findingForRule(rule, [{ type: "manifest", data: { missingInput: missingInputs } }], "blocked-by-missing-input")];
+  }
+
   switch (rule.check.type) {
     case "artifact-present":
       return hasAnyArtifact(manifest, rule.check.anyOf)
@@ -110,6 +115,13 @@ function evaluateRule(rule: RuleDefinition, manifest: DesignManifest, bomTables:
     case "throw":
       throw new Error(rule.check.reason);
   }
+}
+
+function missingRequiredInputs(rule: RuleDefinition, manifest: DesignManifest): ArtifactKind[] {
+  if (rule.check.type === "artifact-present" || rule.check.type === "profile-required") {
+    return [];
+  }
+  return rule.inputs.filter((kind) => kind !== "manufacturer-profile" && (manifest.found[kind]?.length ?? 0) === 0);
 }
 
 async function findRuleFiles(root: string): Promise<string[]> {
