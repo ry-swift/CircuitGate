@@ -27,6 +27,8 @@ importers:
 
   packages/core: {}
 
+  packages/github-action: {}
+
 packages:
 
   '@types/node@22.19.19':

@@ -1,0 +1,112 @@
+name: CircuitGate Review
+description: Run CircuitGate hardware pre-order review and publish report artifacts.
+
+inputs:
+  project:
+    description: Path to the KiCad project or manufacturing package.
+    required: true
+    default: "."
+  profile:
+    description: Manufacturer profile to evaluate.
+    required: false
+    default: "generic"
+  fail-on-severity:
+    description: Fail the workflow when findings are at or above this severity. Use none to never fail.
+    required: false
+    default: "critical"
+  comment:
+    description: Post a pull request comment with critical/high findings.
+    required: false
+    default: "false"
+  upload-artifact:
+    description: Upload JSON and Markdown reports as a workflow artifact.
+    required: false
+    default: "true"
+  artifact-name:
+    description: Artifact name for generated reports.
+    required: false
+    default: "circuitgate-review"
+  report-dir:
+    description: Directory where generated reports are written.
+    required: false
+    default: "circuitgate-report"
+
+outputs:
+  report-json:
+    description: Path to the JSON report.
+    value: ${{ steps.paths.outputs.report-json }}
+  report-markdown:
+    description: Path to the Markdown report.
+    value: ${{ steps.paths.outputs.report-markdown }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install dependencies
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: |
+        corepack enable
+        pnpm install --frozen-lockfile
+
+    - name: Build CircuitGate
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: pnpm build
+
+    - name: Prepare report paths
+      id: paths
+      shell: bash
+      run: |
+        case "${{ inputs.project }}" in
+          /*) project_path="${{ inputs.project }}" ;;
+          *) project_path="$GITHUB_WORKSPACE/${{ inputs.project }}" ;;
+        esac
+        case "${{ inputs.report-dir }}" in
+          /*) report_dir="${{ inputs.report-dir }}" ;;
+          *) report_dir="$GITHUB_WORKSPACE/${{ inputs.report-dir }}" ;;
+        esac
+        mkdir -p "$report_dir"
+        echo "project-path=$project_path" >> "$GITHUB_OUTPUT"
+        echo "report-json=$report_dir/review.json" >> "$GITHUB_OUTPUT"
+        echo "report-markdown=$report_dir/review.md" >> "$GITHUB_OUTPUT"
+
+    - name: Generate JSON report
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: |
+        node packages/cli/dist/index.js review "${{ steps.paths.outputs.project-path }}" \
+          --profile "${{ inputs.profile }}" \
+          --format json \
+          --output "${{ steps.paths.outputs.report-json }}"
+
+    - name: Generate Markdown report
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: |
+        node packages/cli/dist/index.js review "${{ steps.paths.outputs.project-path }}" \
+          --profile "${{ inputs.profile }}" \
+          --format markdown \
+          --output "${{ steps.paths.outputs.report-markdown }}"
+
+    - name: Upload CircuitGate report artifact
+      if: ${{ inputs.upload-artifact == 'true' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: |
+          ${{ steps.paths.outputs.report-json }}
+          ${{ steps.paths.outputs.report-markdown }}
+
+    - name: Comment and enforce threshold
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      run: |
+        node packages/github-action/dist/post-process.js \
+          --report-json "${{ steps.paths.outputs.report-json }}" \
+          --report-markdown "${{ steps.paths.outputs.report-markdown }}" \
+          --comment "${{ inputs.comment }}" \
+          --fail-on-severity "${{ inputs.fail-on-severity }}" \
+          --artifact-name "${{ inputs.artifact-name }}"
