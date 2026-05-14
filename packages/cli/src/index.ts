@@ -3,8 +3,11 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import {
   createReportModel,
+  createDisabledAiProvider,
   createDesignManifest,
+  createOpenAiCompatibleProvider,
   findingsFromManifest,
+  generateReviewSummary,
   loadRuleDefinitions,
   renderJsonReport,
   renderMarkdownReport,
@@ -15,6 +18,15 @@ import {
 } from "@circuitgate/core";
 
 type OutputFormat = "json" | "markdown";
+type AiProviderName = "disabled" | "openai-compatible";
+
+interface AiConfig {
+  provider: AiProviderName;
+  apiKey?: string;
+  baseUrl?: string;
+  model?: string;
+  disabledReason?: string;
+}
 
 interface ReviewArgs {
   projectPath: string;
@@ -22,6 +34,7 @@ interface ReviewArgs {
   format: OutputFormat;
   output?: string;
   rulesRoot: string;
+  ai: AiConfig;
 }
 
 async function main(argv: string[]): Promise<void> {
@@ -42,7 +55,7 @@ async function main(argv: string[]): Promise<void> {
 
   const args = parseReviewArgs(rest);
   const report = await review(args);
-  const rendered = args.format === "json" ? renderJsonReport(report) : renderMarkdownReport(report);
+  const rendered = await renderReviewOutput(report, args);
 
   if (args.output) {
     await mkdir(path.dirname(path.resolve(args.output)), { recursive: true });
@@ -50,6 +63,23 @@ async function main(argv: string[]): Promise<void> {
   } else {
     process.stdout.write(rendered);
   }
+}
+
+async function renderReviewOutput(report: ReportModel, args: ReviewArgs): Promise<string> {
+  if (args.format === "json") {
+    return renderJsonReport(report);
+  }
+
+  const provider =
+    args.ai.provider === "openai-compatible"
+      ? createOpenAiCompatibleProvider({
+          apiKey: args.ai.apiKey,
+          baseUrl: args.ai.baseUrl,
+          model: args.ai.model
+        })
+      : createDisabledAiProvider(args.ai.disabledReason);
+  const summary = await generateReviewSummary(report, provider);
+  return renderMarkdownReport(report, summary.status === "generated" ? { aiSummary: summary.summary } : undefined);
 }
 
 async function review(args: ReviewArgs): Promise<ReportModel> {
@@ -89,7 +119,7 @@ async function runRulesCommand(argv: string[]): Promise<void> {
 
 function parseReviewArgs(argv: string[]): ReviewArgs {
   const positional: string[] = [];
-  const flags = parseFlags(argv, positional);
+  const flags = parseFlags(argv, positional, new Set(["no-ai"]));
   const projectPath = positional[0];
   if (!projectPath) {
     throw new Error("Missing project path. Example: circuitgate review examples/blinky --profile jlcpcb");
@@ -105,11 +135,34 @@ function parseReviewArgs(argv: string[]): ReviewArgs {
     profile: flags.get("profile") ?? "generic",
     format,
     output: flags.get("output"),
-    rulesRoot: path.resolve(flags.get("rules") ?? "rules")
+    rulesRoot: path.resolve(flags.get("rules") ?? "rules"),
+    ai: parseAiConfig(flags)
   };
 }
 
-function parseFlags(argv: string[], positional: string[] = []): Map<string, string> {
+function parseAiConfig(flags: Map<string, string>): AiConfig {
+  if ((flags.get("no-ai") ?? "false").toLowerCase() === "true") {
+    return { provider: "disabled", disabledReason: "disabled by --no-ai" };
+  }
+
+  const provider = flags.get("ai-provider") ?? process.env.CIRCUITGATE_AI_PROVIDER ?? "disabled";
+  if (provider !== "disabled" && provider !== "openai-compatible") {
+    throw new Error(`Unsupported --ai-provider "${provider}". Use disabled or openai-compatible.`);
+  }
+
+  if (provider === "disabled") {
+    return { provider, disabledReason: "AI provider disabled" };
+  }
+
+  return {
+    provider,
+    apiKey: flags.get("ai-api-key") ?? process.env.OPENAI_API_KEY,
+    baseUrl: flags.get("ai-base-url") ?? process.env.OPENAI_BASE_URL,
+    model: flags.get("ai-model") ?? process.env.OPENAI_MODEL
+  };
+}
+
+function parseFlags(argv: string[], positional: string[] = [], booleanFlags = new Set<string>()): Map<string, string> {
   const flags = new Map<string, string>();
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index];
@@ -120,6 +173,11 @@ function parseFlags(argv: string[], positional: string[] = []): Map<string, stri
     }
 
     const [rawKey, inlineValue] = token.slice(2).split("=", 2);
+    if (booleanFlags.has(rawKey)) {
+      flags.set(rawKey, inlineValue ?? "true");
+      continue;
+    }
+
     const value = inlineValue ?? argv[index + 1];
     if (!value || value.startsWith("--")) {
       throw new Error(`Missing value for --${rawKey}.`);
@@ -137,13 +195,21 @@ function printHelp(): void {
   process.stdout.write(`CircuitGate CLI
 
 Usage:
-  circuitgate review <path> [--profile generic|jlcpcb|pcbway] [--format json|markdown] [--output file]
+  circuitgate review <path> [--profile generic|jlcpcb|pcbway] [--format json|markdown] [--output file] [--no-ai]
   circuitgate rules validate [--rules rules]
 
 Examples:
   circuitgate review examples/blinky --profile jlcpcb --format json
-  circuitgate review examples/blinky --profile pcbway --format markdown --output report.md
+  circuitgate review examples/blinky --profile pcbway --format markdown --output report.md --no-ai
+  circuitgate review examples/blinky --format markdown --ai-provider openai-compatible --ai-model gpt-5.4
   circuitgate rules validate
+
+AI options:
+  --no-ai                                      Disable AI summary for this run.
+  --ai-provider disabled|openai-compatible    Enable an OpenAI-compatible chat completions provider.
+  --ai-api-key <key>                          Defaults to OPENAI_API_KEY.
+  --ai-base-url <url>                         Defaults to OPENAI_BASE_URL or https://api.openai.com/v1.
+  --ai-model <model>                          Defaults to OPENAI_MODEL or gpt-5.4.
 `);
 }
 

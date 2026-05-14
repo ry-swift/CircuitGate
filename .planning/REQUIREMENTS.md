@@ -69,9 +69,9 @@
 
 ### AI Review
 
-- [ ] **AI-01**: AI 只能基于已有 finding、规则说明和工具输出生成解释。
-- [ ] **AI-02**: AI 输出必须标记为辅助解释，不得覆盖规则 severity 和证据链。
-- [ ] **AI-03**: 用户可以关闭 AI 摘要，系统仍然能完整运行。
+- [x] **AI-01**: AI 只能基于已有 finding、规则说明和工具输出生成解释。
+- [x] **AI-02**: AI 输出必须标记为辅助解释，不得覆盖规则 severity 和证据链。
+- [x] **AI-03**: 用户可以关闭 AI 摘要，系统仍然能完整运行。
 
 ## v2 Requirements
 
@@ -137,9 +137,9 @@
 | CI-02 | Phase 4 | Complete |
 | CI-03 | Phase 4 | Complete |
 | CI-04 | Phase 4 | Complete |
-| AI-01 | Phase 5 | Pending |
-| AI-02 | Phase 5 | Pending |
-| AI-03 | Phase 5 | Pending |
+| AI-01 | Phase 5 | Complete |
+| AI-02 | Phase 5 | Complete |
+| AI-03 | Phase 5 | Complete |
 
 **Coverage:**
 
@@ -148,4 +148,4 @@
 - Unmapped: 0
 
 ---
-*Last updated: 2026-05-14 after Phase 4 reporting and CI execution*
+*Last updated: 2026-05-14 after Phase 5 evidence-bound AI execution*

@@ -2,41 +2,42 @@
 gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-05-14T08:37:40.553Z"
-last_activity: 2026-05-14
+status: paused
+paused_at: "2026-05-14T12:11:38Z"
+stopped_at: Phase 06 human verification checkpoint
+last_updated: "2026-05-14T12:11:38.980Z"
+last_activity: 2026-05-14 -- Phase 06 waiting for real pilot validation
 progress:
   total_phases: 9
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 9
-  completed_plans: 5
-  percent: 56
+  completed_plans: 6
+  percent: 67
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-12)
+See: .planning/PROJECT.md (updated 2026-05-14)
 
 **Core value:** 在硬件打样前，用可追溯证据帮助工程师发现会导致返板、制造失败或 BOM 风险的明显问题。
-**Current focus:** Phase 04 — reporting-ci
+**Current focus:** Phase 06 — Paid Pilot Operations
 
 ## Current Position
 
-Phase: 04 (reporting-ci) — VERIFYING
+Phase: 06 (paid-pilot-ops) — PAUSED
 Plan: 1 of 1
-Status: Phase complete — ready for verification
-Last activity: 2026-05-14
+Status: Waiting for human verification checkpoint
+Last activity: 2026-05-14 -- Phase 06 waiting for real pilot validation
 
-Progress: [######----] 56%
+Progress: [#######---] 67%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 5
+- Total plans completed: 6
 - Average duration: ~7 min for Phase 1.5 execution plan; ~35 min for Phase 2 and Phase 4 execution plans
 - Total execution time: <2 hours recorded across recent sessions
 
@@ -48,15 +49,18 @@ Progress: [######----] 56%
 | 1.5 | 1 | 1 | ~7 min |
 | 02 | 1 | 1 | ~35 min |
 | 03 | 1 | 1 | ~1h 10m |
+| 04 | 1 | 1 | ~35 min |
+| 05 | 1 | 1 | ~8 min |
 
 **Recent Trend:**
 
-- Last 5 plans: 01-01, 01-50, 02-01, 03-01, 04-01
-- Trend: Product evidence, CLI foundation, first rule library and report/CI workflow are complete; next step is Phase 4 verification, then evidence-bound AI assistance
+- Last 5 plans: 01-50, 02-01, 03-01, 04-01, 05-01
+- Trend: Product evidence, CLI foundation, first rule library, report/CI workflow and evidence-bound AI summary are complete; Phase 06 is now executing paid pilot operations.
 
 *Updated after each plan completion*
 | Phase 03 P01 | 1h 10m | 3 tasks | 13 files |
 | Phase 04 P01 | 35 min | 3 tasks | 10 files |
+| Phase 05 P01 | 8 min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -77,12 +81,15 @@ Recent decisions affecting current work:
 - [Phase 3]: 深电路语义规则首版输出 `needs-human-review`，避免不可证明的 blocking 自动结论。
 - [Phase 4]: ReportModel 是 Markdown、JSON、CI comment 和后续 AI/Web 输出的唯一来源。
 - [Phase 4]: GitHub Action 在 `github.action_path` 构建工具，在 `github.workspace` 审查调用方项目，避免远程 action 路径混淆。
+- [Phase 4]: PR comment 和 fail-on-severity 均消费同一份 JSON report，避免本地报告和 CI 行为分叉。
+- [Phase 5]: AI 只能读取 ReportModel 派生的 evidence pack；模型输出必须引用已知 finding ID，否则跳过摘要。
+- [Phase 5]: CLI 默认禁用 AI，`--no-ai` 明确保证核心审查路径不依赖云模型。
 
 ### Pending Todos
 
 - 用 `.planning/business/pilot-tracker.md` 继续收集 10 个真实项目审查和 2 个付费/预售信号。
-- 下一步验证 Phase 4：报告输出、GitHub Action wrapper、PR comment 和失败阈值。
-- Phase 4 通过验证后，进入 Phase 5：Evidence-bound AI Review Assistant。
+- Phase 06 自动部分已推进：服务套餐、交付模板、试点 tracker、case study 和规则反馈闭环。
+- Phase 06 的真实客户 gate：10 个真实项目审查和 2 个付费/预售信号需要创始人实际联系、交付和记录。
 
 ### Blockers/Concerns
 
@@ -91,7 +98,8 @@ Recent decisions affecting current work:
 - 深电路语义规则首版不得作为 blocking 自动判断。
 - GSD 工具当前未正确解析 `01-5-*` 小数 phase 目录，Phase 1.5 的路线图进度已手动维护。
 - Phase 2 示例项目是最小 smoke fixture，不代表真实板级审查质量；真实项目仍需在 Phase 6 和后续规则验证中补充。
-- Phase 4 已本地验证 action 核心逻辑，但尚未在真实 GitHub-hosted runner 或 `act` 中端到端运行。
+- [Phase 4] GitHub Action 核心逻辑已本地验证，但尚未在真实 GitHub-hosted runner 或 `act` 中端到端运行。
+- [Phase 5] openai-compatible provider 只做本地 fake fetch 测试，尚未用真实 API key 端到端调用云模型。
 
 ## Deferred Items
 
@@ -103,6 +111,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-14T08:37:40.549Z
-Stopped at: Completed 04-01-PLAN.md
-Resume file: None
+Last session: 2026-05-14T12:11:38Z
+Stopped at: Phase 06 human verification checkpoint
+Resume file: .planning/.continue-here.md

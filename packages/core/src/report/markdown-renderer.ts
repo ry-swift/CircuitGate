@@ -1,7 +1,12 @@
 import type { FindingEvidence } from "../findings/finding.js";
+import type { AiReviewSummary } from "../ai/review-summary.js";
 import type { ReportFinding, ReportModel } from "./report-model.js";
 
-export function renderMarkdownReport(model: ReportModel): string {
+export interface RenderMarkdownReportOptions {
+  aiSummary?: AiReviewSummary;
+}
+
+export function renderMarkdownReport(model: ReportModel, options: RenderMarkdownReportOptions = {}): string {
   const lines = [
     "# CircuitGate Pre-order Review",
     "",
@@ -24,6 +29,7 @@ export function renderMarkdownReport(model: ReportModel): string {
     ""
   ];
 
+  appendAiSummary(lines, options.aiSummary);
   appendSection(lines, "Manufacturing Blockers", manufacturingBlockers(model));
   appendSection(lines, "BOM/CPL Assembly Risks", bomAssemblyRisks(model));
   appendSection(lines, "KiCad ERC/DRC Interpretation", kicadFindings(model));
@@ -35,6 +41,26 @@ export function renderMarkdownReport(model: ReportModel): string {
   appendRecheckChecklist(lines);
 
   return `${lines.join("\n")}\n`;
+}
+
+function appendAiSummary(lines: string[], summary: AiReviewSummary | undefined): void {
+  if (!summary) return;
+
+  lines.push(
+    "## AI Summary",
+    "",
+    "辅助解释，事实以规则和工具证据为准。AI 摘要不会覆盖 severity、证据链或 waiver 状态。",
+    "",
+    `**${summary.headline}**`,
+    ""
+  );
+
+  for (const item of summary.items) {
+    lines.push(`- **${item.title}:** ${item.explanation}`);
+    lines.push(`  - Referenced findings: ${item.referencedFindingIds.map((id) => `\`${id}\``).join(", ")}`);
+  }
+
+  lines.push("");
 }
 
 function appendSection(lines: string[], title: string, findings: ReportFinding[]): void {
